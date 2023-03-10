@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Path, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -15,11 +15,11 @@ app.version = "0.0.1"
 
 class Movie(BaseModel):
     id: Optional[int] = None
-    title: str = Field(min_lenght=5, max_lenght=15)
-    overview: str = Field(min_lenght=15, max_lenght=50)
+    title: str = Field(min_length=5, max_length=15)
+    overview: str = Field(min_length=15, max_length=50)
     year: int = Field(le=2022) # con le indico el maximo del numero del que no puede pasar
-    rating: float = Field(le=10) 
-    category: str = Field(min_lenght=5, max_lenght=15)
+    rating: float = Field(ge=1, le=10) #mínimo y máximo rating
+    category: str = Field(min_length=5, max_length=15)
 
 
     # creo una clase que queda como por defecto ya lista.
@@ -66,7 +66,7 @@ def get_movies():
 
 #obtener las películas mediante un id
 @app.get('/movies/{id}', tags=['movies'])
-def get_movie(id: int):
+def get_movie(id: int = Path(default=1, ge=1, le=2000)):
     for item in movies:
         if item["id"] == id:
             return item
@@ -75,10 +75,10 @@ def get_movie(id: int):
 #obtener las películas mediante categoría
 
 @app.get('/movies/', tags=['movies'])
-def get_movies_by_category(category: str):
+def get_movies_by_category(category: str = Query(min_length=5, max_length=15)): 
 
     #funcionalidad para filtrar las películas por categoría
-    return [movie for movie in movies if movie['category'] == category]
+    return [item for item in movies if item['category'] == category]
 
 @app.post('/movies/', tags=['movies'])
 def create_movie(movie: Movie):
